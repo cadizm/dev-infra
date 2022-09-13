@@ -7,11 +7,15 @@
       file:
         path: /opt/cadizm/var/www
         state: directory
+        owner: www-data
+        group: www-data
 
     - name: Add custom var/log
       file:
         path: /opt/cadizm/var/log
         state: directory
+        owner: www-data
+        group: www-data
 
     - name: Install nginx
       apt:

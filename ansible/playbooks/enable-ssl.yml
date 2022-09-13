@@ -1,0 +1,30 @@
+---
+
+- hosts: all
+  become: true
+  vars_files:
+    - "{{playbook_dir}}/../vars/users.yml"
+  tasks:
+    - name: Remove apt certbot
+      apt:
+        name: certbot
+        state: absent
+
+    - name: Install certbot using snap
+      community.general.snap:
+        name: certbot
+        classic: yes
+        state: present
+
+    - name: Let's Encrypt Certbot
+      command: "certbot --nginx --non-interactive --email='{{ users.cadizm.email }}' --agree-tos -d dev.cadizm.com"
+
+    - name: Reload nginx
+      service:
+        name: nginx
+        state: reloaded
+
+    - name: Restart nginx
+      service:
+        name: nginx
+        state: restarted

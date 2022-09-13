@@ -1,0 +1,34 @@
+---
+
+- hosts: all
+  become: true
+  tasks:
+    - name: Add webroot
+      file:
+        path: /opt/cadizm/var/www
+        state: directory
+
+    - name: Add custom var/log
+      file:
+        path: /opt/cadizm/var/log
+        state: directory
+
+    - name: Install nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Copy nginx conf
+      copy:
+        src: "{{playbook_dir}}/../conf/dev-nginx.conf"
+        dest: /etc/nginx/sites-enabled
+
+    - name: Ensure apt cache is up to date
+      apt: update_cache=yes
+
+    - name: Reload nginx
+      service: name=nginx state=reloaded
+
+    - name: Restart nginx service
+      service: name=nginx state=restarted

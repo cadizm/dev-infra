@@ -1,0 +1,50 @@
+---
+
+- hosts: all
+  become: true
+  vars_files:
+    - "{{playbook_dir}}/../vars/users.yml"
+  tasks:
+    - name: Add users
+      user:
+        name: "{{ item.key }}"
+        group: users
+        groups: users,sudo
+        shell: /bin/bash
+        state: present
+      loop: "{{ lookup('dict', users, wantlist=True) }}"
+
+    - name: Add authorized_keys
+      authorized_key:
+        user: "{{ item.key }}"
+        key: "{{ item.value.authorized_key }}"
+      loop: "{{ lookup('dict', users, wantlist=True) }}"
+
+    - name: Set home ownership
+      file:
+        path: "/home/{{ item.key }}"
+        owner: "{{ item.key }}"
+        recurse: yes
+      loop: "{{ lookup('dict', users, wantlist=True) }}"
+
+    - name: Sudoers nopasswd
+      lineinfile:
+        dest: /etc/sudoers
+        state: present
+        regexp: '^%sudo\s+.*$'
+        line: '%sudo   ALL=(ALL) NOPASSWD:ALL'
+
+    - name: Disable root login
+      lineinfile:
+        dest: /etc/ssh/sshd_config
+        state: present
+        regexp: '^PermitRootLogin\s+.*$'
+        line: 'PermitRootLogin no'
+      notify:
+        - Restart sshd
+
+  handlers:
+    - name: Restart sshd
+      service:
+        name: sshd
+        state: restarted

@@ -1,0 +1,41 @@
+---
+
+- hosts: all
+  become: false
+  remote_user: cadizm
+  tasks:
+    - name: Install python dotfiles
+      pip: name=dotfiles
+
+    - name: Create workspace/src directory
+      file:
+        path: /home/cadizm/workspace/src
+        state: directory
+        mode: 0755
+
+    - name: Add github.com to known_hosts
+      known_hosts:
+        name: github.com
+        key: "{{ lookup('pipe', 'ssh-keyscan -t rsa github.com') }}"
+        path: /home/cadizm/.ssh/known_hosts
+        state: present
+
+    - name: Check out cadizm dotfiles repo
+      git:
+        repo: git@github.com:cadizm/dotfiles.git
+        dest: /home/cadizm/workspace/src/dotfiles
+        accept_hostkey: yes
+
+    - name: Check out cadizm bin repo
+      git:
+        repo: git@github.com:cadizm/bin.git
+        dest: /home/cadizm/workspace/src/bin
+
+    - name: Symlink bin directory
+      file:
+        src: /home/cadizm/workspace/src/bin
+        dest: /home/cadizm/bin
+        state: link
+
+    - name: Sync dotfiles
+      command: /home/cadizm/.local/bin/dotfiles --sync --force --home=/home/cadizm --repo=/home/cadizm/workspace/src/dotfiles

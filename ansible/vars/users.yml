@@ -1,0 +1,5 @@
+---
+users:
+  cadizm:
+    email: mike@cadizm.com
+    authorized_key: https://github.com/cadizm.keys

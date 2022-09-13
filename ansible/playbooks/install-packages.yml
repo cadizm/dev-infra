@@ -1,0 +1,38 @@
+---
+
+- hosts: all
+  become: true
+  tasks:
+    - name: Add universe repository
+      apt_repository:
+       repo: deb http://archive.ubuntu.com/ubuntu jammy universe
+       state: present
+       update_cache: False
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install packages
+      apt: name={{item}} state=latest
+      with_items:
+        - apt-transport-https
+        - bat
+        - binutils
+        - ca-certificates
+        - curl
+        - fzf
+        - git
+        - gnupg
+        - logrotate
+        - lsb-release
+        - python2
+        - python3
+        - python3-pip
+        - vim
+
+    - name: Add symlink for batcat package
+      file:
+        src: /bin/batcat
+        dest: /usr/local/bin/bat
+        state: link

@@ -5,7 +5,7 @@ all:
 droplet:
 	terraform -chdir=./terraform apply
 
-setup: install-packages setup-docker setup-nginx enable-ssl add-superusers setup-cadizm
+setup: install-packages setup-docker add-superusers setup-cadizm setup-nginx enable-ssl
 
 install-packages: droplet
 	ansible-playbook -i ansible/hosts --limit=dev --user=root ansible/playbooks/install-packages.yml
@@ -13,14 +13,14 @@ install-packages: droplet
 setup-docker: install-packages
 	ansible-playbook -i ansible/hosts --limit=dev --user=root ansible/playbooks/setup-docker.yml
 
-setup-nginx:  install-packages
-	ansible-playbook -i ansible/hosts --limit=dev --user=root ansible/playbooks/setup-nginx.yml
-
-enable-ssl: setup-nginx
-	ansible-playbook -i ansible/hosts --limit=dev --user=root ansible/playbooks/enable-ssl.yml
-
-add-superusers: install-packages
+add-superusers: setup-docker
 	ansible-playbook -i ansible/hosts --limit=dev --user=root ansible/playbooks/add-superusers.yml
 
 setup-cadizm: add-superusers
 	ansible-playbook -i ansible/hosts --limit=dev --user=cadizm ansible/playbooks/setup-cadizm.yml
+
+setup-nginx:  setup-cadizm
+	ansible-playbook -i ansible/hosts --limit=dev --user=cadizm ansible/playbooks/setup-nginx.yml
+
+enable-ssl: setup-nginx
+	ansible-playbook -i ansible/hosts --limit=dev --user=cadizm ansible/playbooks/enable-ssl.yml
